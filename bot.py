@@ -4,7 +4,7 @@ import os
 
 # ========= CONFIG =========
 API_ID = int(os.getenv("API_ID", "12345678"))
-API_HASH = os.getenv("API_HASH", "API_HASH_HERE")
+API_HASH = os.getenv("API_HASH", "0ef198353fe6021fb9a3c3600069556b")
 BOT_TOKEN = os.getenv("BOT_TOKEN", "BOT_TOKEN_HERE")
 
 WELCOME_TEXT = """
