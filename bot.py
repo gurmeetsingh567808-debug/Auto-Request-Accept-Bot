@@ -1,16 +1,28 @@
 from pyrogram import Client
 from pyrogram.types import ChatJoinRequest
+import threading
+from http.server import HTTPServer, BaseHTTPRequestHandler
 import os
 
-API_ID = os.getenv("API_ID")
-API_HASH = os.getenv("API_HASH")
-BOT_TOKEN = os.getenv("BOT_TOKEN")
+# ====== TELEGRAM CONFIG ======
+API_ID = int(os.getenv("API_ID", "39782795"))
+API_HASH = os.getenv("API_HASH", "0ef198353fe6021fb9a3c3600069556b")
+BOT_TOKEN = os.getenv("BOT_TOKEN", "BOT_TOKEN_HERE")
 
-if not API_ID or not API_HASH or not BOT_TOKEN:
-    raise RuntimeError("❌ Environment variables not set properly")
+# ====== FAKE WEB SERVER ======
+class Handler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header("Content-type", "text/plain")
+        self.end_headers()
+        self.wfile.write(b"Bot is running")
 
-API_ID = int(API_ID)
+def run_web():
+    port = int(os.environ.get("PORT", 10000))
+    server = HTTPServer(("0.0.0.0", port), Handler)
+    server.serve_forever()
 
+# ====== TELEGRAM BOT ======
 app = Client(
     "auto_accept_bot",
     api_id=API_ID,
@@ -22,5 +34,8 @@ app = Client(
 async def auto_accept(client, request: ChatJoinRequest):
     await request.approve()
 
-print("🤖 Auto Accept Bot Running...")
+# ====== START BOTH ======
+print("🤖 Bot + Web Service Running...")
+
+threading.Thread(target=run_web).start()
 app.run()
