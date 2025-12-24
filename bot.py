@@ -17,5 +17,5 @@ app = Client(
 async def auto_accept(client, request: ChatJoinRequest):
     await request.approve()
 
-print("🤖 Auto Accept Unlimited Bot Running...")
+print("🤖 Auto Accept Bot Running...")
 app.run()
