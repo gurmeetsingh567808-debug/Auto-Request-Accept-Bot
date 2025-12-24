@@ -1,5 +1,9 @@
 from pyrogram import Client, filters
-from pyrogram.types import ChatJoinRequest, InlineKeyboardMarkup, InlineKeyboardButton
+from pyrogram.types import (
+    ChatJoinRequest,
+    InlineKeyboardMarkup,
+    InlineKeyboardButton
+)
 import threading
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import os
@@ -31,12 +35,12 @@ app = Client(
     bot_token=BOT_TOKEN
 )
 
-# ---------- /start command ----------
+# ---------- /start ----------
 @app.on_message(filters.private & filters.command("start"))
 async def start_cmd(client, message):
     await message.reply_text(
         "🤖 **I am Request Accept Bot**\n\n"
-        "➕ Mujhe apne **Private Group / Channel** me add karo\n"
+        "➕ Mujhe **Private Group / Channel** me add karo\n"
         "🔐 Admin banao (Approve Join Requests)\n\n"
         "✅ Main **pending + new** sabhi join requests accept karta hoon.",
         reply_markup=InlineKeyboardMarkup(
@@ -49,45 +53,45 @@ async def start_cmd(client, message):
         )
     )
 
-# ---------- Auto accept NEW join request ----------
-@app.on_chat_join_request()
-async def auto_accept(client, request: ChatJoinRequest):
-    await request.approve()
-    await send_welcome_dm(client, request.from_user.id, request.from_user.first_name)
-
 # ---------- Welcome DM ----------
-async def send_welcome_dm(client, user_id, name):
+async def send_welcome(client, user):
     try:
         await client.send_message(
-            user_id,
-            f"🎉 **Welcome {name}!**\n\n"
-            "✅ Aapki join request accept ho chuki hai.\n"
-            "📢 Please rules follow karein.\n\n"
+            user.id,
+            f"🎉 **Welcome {user.first_name}!**\n\n"
+            "✅ Aapki join request accept ho gayi hai.\n"
             "Enjoy 😊"
         )
     except:
         pass
 
-# ---------- ACCEPT PENDING REQUESTS ON STARTUP ----------
-async def accept_pending_requests():
+# ---------- NEW join request ----------
+@app.on_chat_join_request()
+async def auto_accept(client, request: ChatJoinRequest):
+    await request.approve()
+    await send_welcome(client, request.from_user)
+
+# ---------- ACCEPT PENDING REQUESTS ----------
+async def accept_pending():
     print("🔄 Checking pending join requests...")
     async for dialog in app.get_dialogs():
         chat = dialog.chat
         try:
             async for req in app.get_chat_join_requests(chat.id):
                 await req.approve()
-                await send_welcome_dm(app, req.from_user.id, req.from_user.first_name)
-                print(f"✅ Accepted pending: {req.from_user.id} in {chat.id}")
+                await send_welcome(app, req.from_user)
+                print(f"✅ Accepted pending: {req.from_user.id}")
         except:
             pass
 
-# ---------- ON BOT START ----------
-@app.on_start()
-async def on_start(client):
-    asyncio.create_task(accept_pending_requests())
+# ---------- MAIN ----------
+async def main():
+    await app.start()
+    await accept_pending()
+    await asyncio.Event().wait()  # keep bot running
 
-# ================== START BOTH ==================
+# ================== START ==================
 print("🤖 Auto Accept Bot (Pending + New) Running...")
 
 threading.Thread(target=run_web).start()
-app.run()
+asyncio.run(main())
