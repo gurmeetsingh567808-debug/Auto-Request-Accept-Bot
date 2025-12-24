@@ -2,9 +2,14 @@ from pyrogram import Client
 from pyrogram.types import ChatJoinRequest
 import os
 
-API_ID = int(os.getenv("API_ID"))
+API_ID = os.getenv("API_ID")
 API_HASH = os.getenv("API_HASH")
 BOT_TOKEN = os.getenv("BOT_TOKEN")
+
+if not API_ID or not API_HASH or not BOT_TOKEN:
+    raise RuntimeError("❌ Environment variables not set properly")
+
+API_ID = int(API_ID)
 
 app = Client(
     "auto_accept_bot",
